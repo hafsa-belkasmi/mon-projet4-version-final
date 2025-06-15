@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Product_Name</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Nom du produit</shortDescription>
+        <value>Nom du produit</value>
+    </labels>
+    <labels>
+        <fullName>Quantity</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Quantité</shortDescription>
+        <value>Quantité</value>
+    </labels>
+    <labels>
+        <fullName>QuantityInStock</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Quantité en stock</shortDescription>
+        <value>Quantité en stock</value>
+    </labels>
+    <labels>
+        <fullName>UnitPrice</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Prix Unitaire</shortDescription>
+        <value>Prix Unitaire</value>
+    </labels>
+    <labels>
+        <fullName>TotalPrice</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Prix Total</shortDescription>
+        <value>Prix Total</value>
+    </labels>
+    <labels>
+        <fullName>SeeProduct</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Voir produit</shortDescription>
+        <value>Voir</value>
+    </labels>
+    <labels>
+        <fullName>Delete</fullName>
+        <language>fr</language>
+        <protected>false</protected>
+        <shortDescription>Supprimer</shortDescription>
+        <value>Supprimer</value>
+    </labels>
+</CustomLabels>

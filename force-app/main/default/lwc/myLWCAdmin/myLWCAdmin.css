@@ -1,0 +1,9 @@
+.slds-text-color_error {
+    color: red;
+    font-weight: bold;
+}
+
+.slds-text-color_success {
+    color: green;
+    font-weight: bold;
+}

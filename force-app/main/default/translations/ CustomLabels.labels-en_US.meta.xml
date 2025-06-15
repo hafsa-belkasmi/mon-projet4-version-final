@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Translations xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customLabels>
+        <name>Product_Name</name>
+        <label>Product Name</label>
+    </customLabels>
+    <customLabels>
+        <name>Quantity</name>
+        <label>Quantity</label>
+    </customLabels>
+    <customLabels>
+        <name>QuantityInStock</name>
+        <label>Quantity in Stock</label>
+    </customLabels>
+    <customLabels>
+        <name>UnitPrice</name>
+        <label>Unit Price</label>
+    </customLabels>
+    <customLabels>
+        <name>TotalPrice</name>
+        <label>Total Price</label>
+    </customLabels>
+    <customLabels>
+        <name>SeeProduct</name>
+        <label>See Product</label>
+    </customLabels>
+    <customLabels>
+        <name>Delete</name>
+        <label>Delete</label>
+    </customLabels>
+</Translations>

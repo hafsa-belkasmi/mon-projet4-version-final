@@ -1,0 +1,18 @@
+<template>
+    <template if:true={isAdmin}>
+        <lightning-card title="Produits - Administrateur">
+            <lightning-datatable
+                key-field="Id"
+                data={opportunityRows}
+                columns={columns}
+                onrowaction={handleRowAction}>
+            </lightning-datatable>
+        </lightning-card>
+    </template>
+
+    <template if:false={isAdmin}>
+        <lightning-card title="Accès restreint">
+            <p class="slds-p-around_medium">Vous n’avez pas les droits pour voir les produits.</p>
+        </lightning-card>
+    </template>
+</template>
