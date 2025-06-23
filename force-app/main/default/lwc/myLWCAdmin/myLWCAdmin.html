@@ -1,18 +1,21 @@
 <template>
-    <template if:true={isAdmin}>
-        <lightning-card title="Produits - Administrateur">
+    <lightning-card title="Produits associés à l’opportunité">
+        <!-- Affiche un message si aucun produit n'est présent -->
+        <template if:true={noData}>
+            <div class="slds-p-around_medium slds-text-color_weak">
+                <p><strong>Vous n'avez aucune ligne de produits pour le moment.</strong></p>
+                <p>1. Veuillez tout d'abord sélectionner un Catalogue (Pricebook)</p>
+                <p>2. Sélectionnez ensuite les produits à ajouter</p>
+            </div>
+        </template>
+   <!-- Affiche le tableau si des produits sont disponibles -->
+        <template if:false={noData}>
             <lightning-datatable
                 key-field="Id"
                 data={opportunityRows}
                 columns={columns}
                 onrowaction={handleRowAction}>
             </lightning-datatable>
-        </lightning-card>
-    </template>
-
-    <template if:false={isAdmin}>
-        <lightning-card title="Accès restreint">
-            <p class="slds-p-around_medium">Vous n’avez pas les droits pour voir les produits.</p>
-        </lightning-card>
-    </template>
+        </template>
+    </lightning-card>
 </template>

@@ -13,6 +13,7 @@ import TotalPrice from '@salesforce/label/c.TotalPrice';
 import DeleteLabel from '@salesforce/label/c.Delete';
 import Delete_Title from '@salesforce/label/c.Delete_Title';
 import SeeProduct from '@salesforce/label/c.SeeProduct'; 
+// Colonnes pour l'administrateur (avec bouton 'See Product')
 const COLUMNSAdmin = [
     { label: Product_Name, fieldName: 'Product2Name' },
     {
@@ -48,7 +49,7 @@ const COLUMNSAdmin = [
         }
     }
 ];
-
+// Colonnes pour les utilisateurs non admin (sans 'See Product')
 const COLUMNSCommercial = [
     { label: Product_Name, fieldName: 'Product2Name' },
     {
@@ -73,31 +74,31 @@ const COLUMNSCommercial = [
         }
     }
 ];
-
+// Déclaration du composant LWC
 export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
-    @api recordId;
-    @track opportunityRows = [];
-    @track columns = [];
-    @track isAdmin = true;
-    @track noData = false;
+    @api recordId; // ID de l'opportunité
+    @track opportunityRows = []; // Données à afficher dans le tableau
+    @track columns = []; // Colonnes à afficher
+    @track isAdmin = true; // Détermine si l'utilisateur est admin
+    @track noData = false; // Indique si l'opportunité contient des produits
 
     connectedCallback() {
         this.getProfil();
     }
-
+// Récupère le profil utilisateur et définit les colonnes à afficher
     getProfil() {
         getUserProfile()
             .then(profile => {
-                console.log('profil',profile);
+                console.log('Profil reçu : ', profile); // 👈 ajoute ceci
                 this.isAdmin =
-                  profile.includes('System Administrator')?true:false;
+                  this.isAdmin = profile === 'System Administrator';
                 this.columns = this.isAdmin ? COLUMNSAdmin : COLUMNSCommercial;
             })
             .catch(error => {
                 console.error('Erreur profil : ', error);
             });
     }
-
+// Récupère les produits liés à l'opportunité via Apex
     @wire(getOpportunityData, { opportunityId: '$recordId' })
     opportunityData({ error, data }) {
         if (data && data.length > 0) {
@@ -116,10 +117,11 @@ export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
             }));
             this.noData = false;
         } else {
+             // Aucun produit trouvé
             this.opportunityRows = [];
             this.noData = true;
         }
-
+// En cas d'erreur lors de la récupération
         if (error) {
             console.error('Erreur récupération données : ', error);
             this.opportunityRows = [];
@@ -143,14 +145,16 @@ export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
                 });
                 break;
             case 'delete_product':
+                // Suppression de la ligne de produit
                 this.deleteOpportunityLineItem(row.Id);
                 break;
         }
     }
-
+ // Supprime un produit lié à l'opportunité
     deleteOpportunityLineItem(recordId) {
         deleteRecord(recordId)
             .then(() => {
+                 // Met à jour le tableau sans le produit supprimé
                 this.opportunityRows = this.opportunityRows.filter(item => item.Id !== recordId);
             })
             .catch(error => {
