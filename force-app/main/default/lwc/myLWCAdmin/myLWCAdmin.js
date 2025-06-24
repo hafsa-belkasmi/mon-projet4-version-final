@@ -4,7 +4,7 @@ import getUserProfile from '@salesforce/apex/OpportunityController.getUserProfil
 import deleteRecord from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 
-// Import des labels personnalisés
+// Import des labels personnalisés pour les colonnes
 import Product_Name from '@salesforce/label/c.Product_Name';
 import Quantity from '@salesforce/label/c.Quantity';
 import QuantityInStock from '@salesforce/label/c.QuantityInStock';
@@ -12,15 +12,16 @@ import UnitPrice from '@salesforce/label/c.UnitPrice';
 import TotalPrice from '@salesforce/label/c.TotalPrice';
 import DeleteLabel from '@salesforce/label/c.Delete';
 import Delete_Title from '@salesforce/label/c.Delete_Title';
-import SeeProduct from '@salesforce/label/c.SeeProduct'; 
-// Colonnes pour l'administrateur (avec bouton 'See Product')
+import SeeProduct from '@salesforce/label/c.SeeProduct';
+
+// Définition des colonnes pour les administrateurs (avec bouton "Voir Produit")
 const COLUMNSAdmin = [
     { label: Product_Name, fieldName: 'Product2Name' },
     {
         label: Quantity,
         fieldName: 'Quantity',
         cellAttributes: {
-            class: { fieldName: 'quantityClass' }
+            class: { fieldName: 'quantityClass' } // Applique une classe CSS conditionnelle
         }
     },
     { label: QuantityInStock, fieldName: 'Quantit_en_stock__c' },
@@ -49,14 +50,15 @@ const COLUMNSAdmin = [
         }
     }
 ];
-// Colonnes pour les utilisateurs non admin (sans 'See Product')
+
+// Définition des colonnes pour les commerciaux (sans bouton "Voir Produit")
 const COLUMNSCommercial = [
     { label: Product_Name, fieldName: 'Product2Name' },
     {
         label: Quantity,
         fieldName: 'Quantity',
         cellAttributes: {
-            class: { fieldName: 'quantityClass' }
+            class: { fieldName: 'quantityClass' } // Couleur conditionnelle du texte
         }
     },
     { label: QuantityInStock, fieldName: 'Quantit_en_stock__c' },
@@ -74,67 +76,83 @@ const COLUMNSCommercial = [
         }
     }
 ];
-// Déclaration du composant LWC
-export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
-    @api recordId; // ID de l'opportunité
-    @track opportunityRows = []; // Données à afficher dans le tableau
-    @track columns = []; // Colonnes à afficher
-    @track isAdmin = true; // Détermine si l'utilisateur est admin
-    @track noData = false; // Indique si l'opportunité contient des produits
 
+export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
+    @api recordId; // ID de l'opportunité en cours
+    @track opportunityRows = []; // Liste des lignes de produits liées à l'opportunité
+    @track columns = []; // Colonnes dynamiques selon le profil utilisateur
+    @track isAdmin = true; // Détermine si l'utilisateur est un administrateur
+    @track noData = false; // Indique s’il n’y a aucun produit à afficher
+    @track showQuantityWarning = false; // Affiche un message d’avertissement si des quantités dépassent le stock
+
+    // Méthode exécutée dès que le composant est inséré dans la page
     connectedCallback() {
-        this.getProfil();
+        this.getProfil(); // On commence par récupérer le profil utilisateur
     }
-// Récupère le profil utilisateur et définit les colonnes à afficher
+
+    // Appelle Apex pour connaître le profil utilisateur, puis définit les colonnes selon le rôle
     getProfil() {
         getUserProfile()
             .then(profile => {
-                console.log('Profil reçu : ', profile); // 👈 ajoute ceci
-                this.isAdmin =
-                  this.isAdmin = profile === 'System Administrator';
+                this.isAdmin = profile === 'System Administrator';
                 this.columns = this.isAdmin ? COLUMNSAdmin : COLUMNSCommercial;
             })
             .catch(error => {
-                console.error('Erreur profil : ', error);
+                console.error('Erreur lors de la récupération du profil : ', error);
             });
     }
-// Récupère les produits liés à l'opportunité via Apex
+
+    // Récupère les lignes de produit via une méthode Apex
     @wire(getOpportunityData, { opportunityId: '$recordId' })
     opportunityData({ error, data }) {
         if (data && data.length > 0) {
-            this.opportunityRows = data.map(item => ({
-                Id: item.Id,
-                Product2Name: item.Product2?.Name,
-                UnitPrice: item.UnitPrice,
-                TotalPrice: item.TotalPrice,
-                Quantity: item.Quantity,
-                Quantit_en_stock__c: item.Quantit_en_stock__c,
-                Product2Id: item.Product2Id,
-                quantityClass:
-                    item.Quantity > item.Quantit_en_stock__c
-                        ? 'slds-text-color_error'
-                        : 'slds-text-color_success'
-            }));
-            this.noData = false;
+            this.showQuantityWarning = false; // Réinitialise l'avertissement
+
+            // Mappe chaque ligne pour préparer les données du tableau
+            this.opportunityRows = data.map(item => {
+                const hasStockError = item.Quantity > item.Quantit_en_stock__c;
+
+                // Si une erreur de stock est détectée, on déclenche le message d'alerte
+                if (hasStockError) {
+                    this.showQuantityWarning = true;
+                }
+
+                return {
+                    Id: item.Id,
+                    Product2Name: item.Product2?.Name,
+                    UnitPrice: item.UnitPrice,
+                    TotalPrice: item.TotalPrice,
+                    Quantity: item.Quantity,
+                    Quantit_en_stock__c: item.Quantit_en_stock__c,
+                    Product2Id: item.Product2Id,
+                    quantityClass: hasStockError
+                        ? 'slds-text-color_error' // Affiche la cellule en rouge
+                        : 'slds-text-color_success' // Affiche la cellule en vert
+                };
+            });
+
+            this.noData = false; // Il y a des données à afficher
         } else {
-             // Aucun produit trouvé
             this.opportunityRows = [];
-            this.noData = true;
+            this.noData = true; // Aucune donnée trouvée
         }
-// En cas d'erreur lors de la récupération
+
+        // En cas d’erreur de récupération
         if (error) {
-            console.error('Erreur récupération données : ', error);
+            console.error('Erreur lors de la récupération des données : ', error);
             this.opportunityRows = [];
             this.noData = true;
         }
     }
 
+    // Gère les actions de ligne comme "Voir le produit" ou "Supprimer"
     handleRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
 
         switch (actionName) {
             case 'view_product':
+                // Navigue vers l’enregistrement du produit
                 this[NavigationMixin.Navigate]({
                     type: 'standard__recordPage',
                     attributes: {
@@ -145,20 +163,21 @@ export default class MyLWCAdmin extends NavigationMixin(LightningElement) {
                 });
                 break;
             case 'delete_product':
-                // Suppression de la ligne de produit
+                // Supprime la ligne sélectionnée
                 this.deleteOpportunityLineItem(row.Id);
                 break;
         }
     }
- // Supprime un produit lié à l'opportunité
+
+    // Supprime un produit lié à l’opportunité
     deleteOpportunityLineItem(recordId) {
         deleteRecord(recordId)
             .then(() => {
-                 // Met à jour le tableau sans le produit supprimé
+                // Mise à jour de la liste après suppression
                 this.opportunityRows = this.opportunityRows.filter(item => item.Id !== recordId);
             })
             .catch(error => {
-                console.error('Erreur suppression :', error);
+                console.error('Erreur lors de la suppression :', error);
             });
     }
 }
