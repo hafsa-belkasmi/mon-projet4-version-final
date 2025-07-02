@@ -1,9 +1,13 @@
 public with sharing class OpportunityController {
 
-    // Méthode accessible depuis le composant LWC
-    // Elle retourne la liste des produits liés à une opportunité spécifique
+    //  Méthode pour récupérer les lignes de produits liées à une opportunité
     @AuraEnabled(cacheable=true)
     public static List<OpportunityLineItem> getOpportunityData(Id opportunityId) {
+        // Vérification de permission de lecture sur OpportunityLineItem
+        if (!Schema.sObjectType.OpportunityLineItem.isAccessible()) {
+            throw new AuraHandledException('L’utilisateur n’a pas accès aux lignes de produits.');
+        }
+
         return [
             SELECT Id, Product2.Name, UnitPrice, TotalPrice, Quantity, Quantit_en_stock__c, Product2Id
             FROM OpportunityLineItem
@@ -11,20 +15,33 @@ public with sharing class OpportunityController {
         ];
     }
 
-    // Méthode accessible depuis Le omposant LWC 
-    // Elle retourne le nom du profil de l'utilisateur actuellement connecté
+    // Méthode pour récupérer le profil de l'utilisateur courant
     @AuraEnabled(cacheable=true)
     public static String getUserProfile() {
-        // Récupère l'identifiant de l'utilisateur courant
         Id userId = UserInfo.getUserId();
+        
+        //  Vérifie l’accès à User et Profile
+        if (!Schema.sObjectType.User.isAccessible() || !Schema.sObjectType.Profile.isAccessible()) {
+            throw new AuraHandledException('L’utilisateur n’a pas accès aux données de profil.');
+        }
 
-        // Requête pour récupérer l'utilisateur avec son profil
         User currentUser = [SELECT Id, Profile.Name FROM User WHERE Id = :userId LIMIT 1];
-
-        // Affiche le nom du profil dans les logs 
-        System.debug('currentUser' + currentUser.Profile.Name);
-
-        // Retourne le nom du profil
         return currentUser.Profile.Name;
+    }
+
+    // Méthode pour supprimer une ligne de produit liée à l’opportunité
+    @AuraEnabled
+    public static void deleteOpportunityLineItem(Id recordId) {
+        // Vérification de permission de suppression
+        if (!Schema.sObjectType.OpportunityLineItem.isDeletable()) {
+            throw new AuraHandledException('L’utilisateur n’a pas le droit de supprimer cette ligne.');
+        }
+
+        try {
+            OpportunityLineItem oli = [SELECT Id FROM OpportunityLineItem WHERE Id = :recordId LIMIT 1];
+            delete oli;
+        } catch (Exception e) {
+            throw new AuraHandledException('Erreur lors de la suppression : ' + e.getMessage());
+        }
     }
 }
