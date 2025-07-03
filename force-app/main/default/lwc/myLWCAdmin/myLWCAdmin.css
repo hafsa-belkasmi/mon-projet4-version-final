@@ -1,9 +1,14 @@
-.slds-text-color_error {
+/* Appliqué uniquement à la cellule contenant une quantité dépassant le stock */
+.quantity-overstock {
+    background-color: #f2f2f2;
     color: red;
     font-weight: bold;
+    padding: 4px;
+    border-radius: 4px;
 }
 
-.slds-text-color_success {
+/* Appliqué uniquement à la cellule contenant une quantité valide */
+.quantity-ok {
     color: green;
     font-weight: bold;
 }
