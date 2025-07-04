@@ -7,12 +7,14 @@ public class RetrieveOpportunityProductsTest {
         Product2 p = new Product2(Name = 'Produit Test', IsActive = true);
         insert p;
 
-        // Création d’un prix standard
-        Pricebook2 pb = [SELECT Id FROM Pricebook2 WHERE IsStandard = true LIMIT 1];
+        // Récupération de l’ID du Pricebook standard (correcte et autorisée en test)
+        Id pricebookId = Test.getStandardPricebookId();
+
+        // Création d’un PricebookEntry
         PricebookEntry pbe = new PricebookEntry(
             Product2Id = p.Id,
-            Pricebook2Id = pb.Id,
             UnitPrice = 100,
+            Pricebook2Id = pricebookId,
             IsActive = true
         );
         insert pbe;
@@ -25,22 +27,23 @@ public class RetrieveOpportunityProductsTest {
         );
         insert opp;
 
-        // Création d’un produit lié à l’opportunité
+        // Création d’un OpportunityLineItem
         OpportunityLineItem oli = new OpportunityLineItem(
             OpportunityId = opp.Id,
             Quantity = 2,
             UnitPrice = 100,
             PricebookEntryId = pbe.Id,
-            Quantit_en_stock__c = 50
+            Quantit_en_stock__c = 50 
         );
         insert oli;
 
-        // Appel de la méthode à tester
+        // Exécution du test
         Test.startTest();
         List<OpportunityLineItem> result = RetrieveOpportunityProducts.getProducts(opp.Id);
         Test.stopTest();
 
-        System.assertEquals(1, result.size());
-        System.assertEquals(oli.Id, result[0].Id);
+        // Vérifications
+        System.assertEquals(1, result.size(), 'Il devrait y avoir un seul produit.');
+        System.assertEquals(oli.Id, result[0].Id, 'L’ID de la ligne retournée devrait correspondre.');
     }
 }
